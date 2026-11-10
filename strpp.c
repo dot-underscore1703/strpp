@@ -31,6 +31,10 @@ StrPP *cstr_to_strpp(char *string) {
 char *strpp_to_cstr(StrPP *string) {
 	char *converted = malloc(string->length + 1);
 
+	if(!converted){
+		return NULL;
+	}
+
 	memcpy(converted, string->data, string->length);
 
 	converted[string->length + 1] = '\0';
@@ -61,7 +65,14 @@ StrPP *strpp_strcat(StrPP *restrict dest, StrPP *restrict src) {
 	size_t new_len = dest->length + src->length;
 	StrPP *catenated = malloc(sizeof(StrPP));
 
+	if(!catenated) return NULL;
+
 	catenated->data = malloc(new_len);
+	if(!catenated->data){ 
+		free(catenated);
+		return NULL;
+	}
+	
 	catenated->length = new_len;
 
 	memcpy(catenated->data, dest->data, dest->length);
@@ -87,6 +98,10 @@ int strpp_strcmp(const StrPP *s1, const StrPP *s2) {
 
 StrPP *strpp_strdup(const StrPP *s) {
 	StrPP *duplicated = malloc(sizeof(StrPP));
+	if(!duplicated){
+		return NULL;
+	}
+	
 	duplicated->length = s->length;
 	duplicated->data = s->data;
 
