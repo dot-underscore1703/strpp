@@ -9,17 +9,13 @@ typedef struct {
 	char *data;
 } StrPP;
 
-typedef enum {
-	STRPP_ERR_ALLOC,
-	STRPP_ERR_OVERFLOW,
-	STRPP_OK,
-} StrPPError;
+StrPP *strpp_from_cstr(char *string) {
+	StrPP *dest = malloc(sizeof(StrPP));
 
-StrPPError strpp_from_cstr(char *string, StrPP *dest) {
-	size_t length = strlen(string) + 1;
-	char *data_buf = malloc(length);
+	size_t length = strlen(string);
+	char *data_buf = malloc(length - 1);
 	if(!data_buf){
-		return STRPP_ERR_ALLOC;
+		return NULL;
 	}
 
 	strcpy(data_buf, string);	
@@ -28,13 +24,15 @@ StrPPError strpp_from_cstr(char *string, StrPP *dest) {
 	dest->written = length;
 	dest->data = data_buf;
 
-	return STRPP_OK;
+	return dest;;
 }
 
-StrPPError cstr_from_strpp(StrPP *string, char *dest) {
+char *cstr_from_strpp(StrPP *string) {
+	char *dest = malloc(string->written);
+
 	strcpy(dest, string->data);
 
-	return STRPP_OK;
+	return dest;
 }
 
 size_t strpp_strlen(StrPP string) {
