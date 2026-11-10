@@ -4,7 +4,7 @@ Rather than the standard `char*` "string" in C, StrPP implements its own memory 
 Who needs Rust now?
 A visualisation of the StrPP memory layout:
 ```
-[ LENGTH ] [ DATA ]
+[ CAPACITY ] [ WRITTEN ] [ DATA ] [ NULL ]
 ```
 
 Not only does StrPP provide a safer string type, but it also provides its own string utilities, like `strpp_strcat()`, eliminating the need for constant type conversions, because of this, you'll find that these utilities tend to be faster than libc!
