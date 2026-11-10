@@ -11,6 +11,8 @@ typedef struct {
 
 StrPP *cstr_to_strpp(char *string);
 char *strpp_to_cstr(StrPP *string);
+size_t strpp_strlen(StrPP string);
+size_t strpp_strcap(StrPP string);
 StrPP *strpp_strcpy(StrPP *restrict dest, StrPP *restrict src);
 StrPP *strpp_strncpy(StrPP *restrict dest, StrPP *restrict src, size_t n);
 StrPP *strpp_strcat(StrPP *restrict dest, StrPP *restrict src);

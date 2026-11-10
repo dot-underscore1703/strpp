@@ -4,90 +4,114 @@
 #include <string.h>
 
 typedef struct {
-	size_t length;
-	uint8_t *data;
+	size_t capacity;
+	size_t written;
+	char *data;
 } StrPP;
 
-StrPP *cstr_to_strpp(char *string) {
-	size_t length = strlen(string);
-	uint8_t *data_buf = malloc(length);
+typedef enum {
+	STRPP_ERR_ALLOC,
+	STRPP_ERR_OVERFLOW,
+	STRPP_OK,
+} StrPPError;
+
+StrPPError strpp_from_cstr(char *string, StrPP *dest) {
+	size_t length = strlen(string) + 1;
+	char *data_buf = malloc(length);
 	if(!data_buf){
-		return NULL;
+		return STRPP_ERR_ALLOC;
 	}
 
-	memcpy(data_buf, string, length);	
+	strcpy(data_buf, string);	
 
-	StrPP *converted = malloc(sizeof(StrPP));
-	if(!converted){
-		free(data_buf);
-		return NULL;
-	}
-	converted->length = length;
-	converted->data = data_buf;
+	dest->capacity = length;
+	dest->written = length;
+	dest->data = data_buf;
 
-	return converted;
+	return STRPP_OK;
 }
 
-char *strpp_to_cstr(StrPP *string) {
-	char *converted = malloc(string->length + 1);
+StrPPError cstr_from_strpp(StrPP *string, char *dest) {
+	strcpy(dest, string->data);
 
-	if(!converted){
-		return NULL;
-	}
+	return STRPP_OK;
+}
 
-	memcpy(converted, string->data, string->length);
+size_t strpp_strlen(StrPP string) {
+	return string.written;
+}
 
-	converted[string->length + 1] = '\0';
-
-	return converted;
+size_t strpp_strcap(StrPP string) {
+	return string.capacity;
 }
 
 StrPP *strpp_strcpy(StrPP *restrict dest, StrPP *restrict src) {
-	dest->length = src->length;
+	size_t needed_size = src->written;
+	if(dest->capacity < needed_size){
+		char *tmp = realloc(dest->data, needed_size);
+		if(!tmp) return NULL;
 
-	StrPP *saved = dest;
-	while((*dest->data++ = *src->data++));
+		dest->capacity = needed_size;
+		dest->data = tmp;
+		
+		tmp = NULL;
+	}
 
-	return saved;
+	memcpy(dest->data, src->data, src->written + 1);
+
+	dest->written = src->written;
+
+	return dest;
 }
 
 StrPP *strpp_strncpy(StrPP *restrict dest, StrPP *restrict src, size_t n) {
-	dest->length = src->length;
+	if(dest->capacity < n){
+		char *tmp = realloc(dest->data, n);
+		if(!tmp) return NULL;
 
-	StrPP *saved = dest;
+		dest->capacity = n;
+		dest->data = tmp;
+
+		tmp = NULL;
+	}
+
 	size_t i = 0;
-	while((*dest->data++ = *src->data++) && i++ < n);
+	while(i < n){
+		if(i > src->written){
+			dest->data[i] = '\0';
+		}else{
+			dest->data[i] = src->data[i];
+		}
+		++dest->written;
+	}
 
-	return saved;
+	return dest;
 }
 
 StrPP *strpp_strcat(StrPP *restrict dest, StrPP *restrict src) {
-	size_t new_len = dest->length + src->length;
-	StrPP *catenated = malloc(sizeof(StrPP));
+	size_t new_len = dest->written + src->written;
 
-	if(!catenated) return NULL;
+	if(dest->capacity < new_len) {
+		char *tmp = realloc(dest->data, new_len);
+		if(!tmp) return NULL;
 
-	catenated->data = malloc(new_len);
-	if(!catenated->data){ 
-		free(catenated);
-		return NULL;
-	}
-	
-	catenated->length = new_len;
+		dest->capacity = new_len;
+		dest-> data = tmp;
 
-	memcpy(catenated->data, dest->data, dest->length);
-	size_t written = dest->length;
-	for(size_t i = 0; i < src->length; ++i) {
-		catenated->data[written++] = src->data[i];
+		tmp = NULL;
 	}
 
-	return catenated;
+	memcpy(dest->data + dest->written, src->data, src->written + 1);
+
+	dest->written = new_len;
+
+	return dest;
 }
 
 int strpp_strcmp(const StrPP *s1, const StrPP *s2) {
-	if(s1->length != s2->length) return 1;
+	if(s1->written != s2->written) return 1;
 
-	for(size_t i = 0; i < s1->length; ++i){
+	for(size_t i = 0; i < s1->written; ++i){
 		if(s1->data[i] != s2->data[i]){
 			return 1;
 		}
@@ -98,12 +122,15 @@ int strpp_strcmp(const StrPP *s1, const StrPP *s2) {
 
 StrPP *strpp_strdup(const StrPP *s) {
 	StrPP *duplicated = malloc(sizeof(StrPP));
-	if(!duplicated){
-		return NULL;
-	}
-	
-	duplicated->length = s->length;
-	duplicated->data = s->data;
+	if(!duplicated) return NULL;
+
+	duplicated->capacity = s->capacity;
+	duplicated->written = s->written;
+
+	size_t size = strpp_strlen(*s) + 1;
+	duplicated->data = malloc(size);
+
+	memcpy(duplicated->data, s->data, size);
 
 	return duplicated;	
 }
