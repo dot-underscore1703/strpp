@@ -1,0 +1,21 @@
+Compiler: gcc
+Version: std=gnu17
+
+Output: build/strpp.a
+Kind: static
+
+InputFiles {
+	src/*.c
+}
+Includes {
+	include
+}
+
+Flags {
+	-fsanitize=address,undefined
+	-fno-omit-frame-pointer
+	-g
+	-lreadline
+	-MMD
+	-MP
+}
